@@ -23,20 +23,28 @@ spec:
           env:
             - name: UUID
               value: "359f09e8-fcd6-413c-8a07-7ed16eda937d" # 节点UUID
+
             - name: NEZHA_SERVER
               value: ""        # 双引号内填写哪吒v1地址，没有留空：nezha.xxx.com:8008
+
             - name: NEZHA_KEY
               value: ""        # 双引号内填写哪吒一key
+
             - name: ARGO_PORT
               value: "8001"    # 固定隧道端口，在cloudflare里设置和这里一致即可
+
             - name: ARGO_DOMAIN
               value: ""        # 双引号内固定隧道域名，留空使用临时隧道
+
             - name: ARGO_AUTH
               value: ""        # 双引号内固定隧道密钥json或token
+
             - name: CHAT_ID
               value: ""        # 必填，双引号内填写自己的TG chat id发送节点到自己的TG，TG里 @laowang_serv00_bot 获取
+
             - name: BOT_TOKEN
               value: ""
+
           resources:
             requests:
               cpu: "100m"
@@ -44,6 +52,49 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+
+        # Komari Agent sidecar
+        - name: komari-agent
+          image: eooce/python:latest
+          imagePullPolicy: Always
+          env:
+            - name: KOMARI_ENDPOINT
+              value: "https://k.wgb.ccwu.cc"
+
+            - name: KOMARI_TOKEN
+              value: "XXXXXX"
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "[komari-agent] starting..."
+
+              cd /tmp
+
+              if command -v curl >/dev/null 2>&1; then
+                curl -Ls https://github.com/liveqte/komari-agent-webhost/releases/download/latest/pyagent.pyz -o pyagent.pyz
+              elif command -v wget >/dev/null 2>&1; then
+                wget -qO pyagent.pyz https://github.com/liveqte/komari-agent-webhost/releases/download/latest/pyagent.pyz
+              else
+                echo "[komari-agent] ERROR: curl or wget not found"
+                exit 1
+              fi
+
+              echo "[komari-agent] downloaded pyagent.pyz"
+              echo "[komari-agent] connecting to ${KOMARI_ENDPOINT}"
+
+              exec python3 pyagent.pyz -e "${KOMARI_ENDPOINT}" -t "${KOMARI_TOKEN}"
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
 
 ---
 apiVersion: v1
