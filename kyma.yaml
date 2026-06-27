@@ -62,7 +62,7 @@ spec:
               value: "https://k.wgb.ccwu.cc"
 
             - name: KOMARI_TOKEN
-              value: "XXXXXX"
+              value: "MD4pyQdKw4YeQHDuiKEClX"
 
           command:
             - /bin/sh
